@@ -39,3 +39,12 @@
 
 # debug information files
 *.dwo
+
+# emacs files
+*~
+
+# Object directory
+obj/
+
+# Binary libs
+libs/
