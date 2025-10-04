@@ -9,7 +9,7 @@
 //#include "../interfaces/surface.hpp"
 //#include "../interfaces/engine.hpp"
 
-//#include "../hacks/esp/esp.cpp"
+#include "../hacks/esp/esp.cpp"
 
 #include "../print.hpp"
 
@@ -48,10 +48,14 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     return queue_present_original(queue, present_info);    
   }  
 
+  static ImFont* esp_font;
+  
   // Initialize ImGui context if we haven't already
   if (ImGui::GetCurrentContext() == nullptr) {
     ImGui::CreateContext();
     ImGui_ImplSDL3_InitForVulkan(sdl_window);
+    ImGui::GetIO().Fonts->AddFontDefault();
+    esp_font = ImGui::GetIO().Fonts->AddFontFromFileTTF("/run/host/usr/share/fonts/TTF/ProggyTiny.ttf", 14);
   }
 
   // https://github.com/bruhmoment21/UniversalHookX/blob/main/UniversalHookX/src/hooks/backend/vulkan/hook_vulkan.cpp#L418
@@ -317,14 +321,16 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame( );
 
-    //draw_players_imgui();
-        
+    ImGui::PushFont(esp_font);
+    draw_players();
+    ImGui::PopFont();
+            
     if (menu_focused) {
       draw_menu();
     }  
 
     draw_watermark();
-    
+
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), fd->CommandBuffer);
     /* End of our overlay drawing */

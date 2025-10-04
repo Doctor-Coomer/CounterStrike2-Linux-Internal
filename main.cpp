@@ -2,12 +2,18 @@
 #include <dlfcn.h>
 #include <sys/mman.h>
 
+#include "math.hpp"
+
 #include "interfaces/input_system.hpp"
+#include "interfaces/game_entity_system.hpp"
 
 #include "funchook/funchook.h"
+#include "libsigscan/libsigscan.h"
 
 #include "hooks/sdl.cpp"
 #include "hooks/vulkan.cpp"
+
+#include "hooks/input_create_move.cpp"
 
 #include "hooks/something.cpp"
 
@@ -72,7 +78,7 @@ bool write_to_table(void** vtable, int index, void* func) {
 }
 
 
-void** input_system_vtable;
+void** input_vtable;
 
 funchook_t* funchook;
 
@@ -82,20 +88,45 @@ funchook_t* funchook;
 __attribute__((constructor))
 void entry() {  
 
-  input_system = (InputSystem*)get_interface("libinputsystem.so", "InputSystemVersion001");
-  print("%p\n", input_system);
+  // Sig go crazy
+  unsigned long func_addr1 = (unsigned long)sigscan_module("libclient.so", "48 8D 05 ? ? ? ? C3 CC CC CC CC CC CC CC CC 55 48 89 E5 41 55 41 54 49 89 FC 53 48 89 F3 BE ? ? ? ? 48 81 EC ? ? ? ? E8 ? ? ? ? 48 85 C0 0F 84 ? ? ? ? 4C 8D AD ? ? ? ? 4C 89 E6 BA ? ? ? ? 4C 8D 25 ? ? ? ? 4C 89 EF E8 ? ? ? ? 4C 89 E6 4C 89 EF E8 ? ? ? ? 48 89 C6 48 85 C0 75 ? EB ? 0F 1F 40");
+  unsigned int input_eaddr = *(unsigned int*)(func_addr1 + 0x3);
+  unsigned long next_instruction1 = (unsigned long)(func_addr1 + 0x7);
+  input = (Input*)((void*)(next_instruction1 + input_eaddr));
+
+  // https://github.com/avitran0/deadlocked/blob/406ba57037ad4462740183396dad4fa5e12468c5/src/cs2/mod.rs#L360
+  unsigned long func_addr2 = (unsigned long)sigscan_module("libclient.so", "4C 8D 05 ? ? ? ? 48 8D 0D ? ? ? ? 48 8B 38");
+  unsigned int view_matrix_eaddr = *(unsigned int*)(func_addr2 + 0x3);
+  unsigned long next_instruction2 = (unsigned long)(func_addr2 + 0x7);
+  view_matrix = ((float(*)[4][4])(next_instruction2 + view_matrix_eaddr));
+
+  // https://github.com/avitran0/deadlocked/blob/rust/src/cs2/mod.rs#L346
+  unsigned long func_addr3 = (unsigned long)sigscan_module("libclient.so", "48 83 3D ? ? ? ? 00 0F 95 C0 C3");
+  unsigned int localentity_eaddr = *(unsigned int*)(func_addr3 + 0x3);
+  unsigned long next_instruction3 = (unsigned long)(func_addr3 + 0x8);
+  localentity = ((Entity**)(next_instruction3 + localentity_eaddr));
   
-  input_system_vtable = *(void***)input_system;
-  if (!write_to_table(input_system_vtable, 3, (void*)something_hook)) {
-    print("something hook failed\n");
+  void* game_resource_service = get_interface("libengine2.so", "GameResourceServiceClientV001");
+  entity_system = (GameEntitySystem*)*(void**)((unsigned long)game_resource_service + 0x50);
+  
+  input_vtable = *(void***)input;
+  
+  input_create_move_original = (bool (*)(void*, int, bool))input_vtable[6];  
+  if (!write_to_table(input_vtable, 6, (void*)input_create_move_hook)) {
+    print("Input::CreateMove hook failed\n");
   } else {
-    print("something hooked\n");
+    print("Input::CreateMove hooked\n");
   }
   
   
   funchook = funchook_create();
 
   int rv;
+  
+  something_original = (unsigned long (*)(unsigned long, unsigned long))sigscan_module("libclient.so", "41 56 41 55 41 54 55 48 89 FD 53 48 89 F3 BE");
+  rv = funchook_prepare(funchook, (void**)&something_original, (void*)something_hook);
+  if (rv != 0) {
+  }
   
   void* lib_vulkan_handle = dlopen("/run/host/usr/lib/libvulkan.so.1", RTLD_LAZY | RTLD_NOLOAD);
   if (lib_vulkan_handle == nullptr)
@@ -246,15 +277,14 @@ void entry() {
   if (rv != 0) {
     print("Non-VMT related hooks failed\n");
   }
-
+  
 }
 
 __attribute__((destructor))
 void exit() {
-  if (!write_to_table(input_system_vtable, 3, (void*)something_original)) {
-    print("something failed to restore hook\n");
+  if (!write_to_table(input_vtable, 6, (void*)input_create_move_original)) {
+    print("Input::CreateMove failed to restore hook\n");
   }
-
   
   funchook_uninstall(funchook, 0);
 }

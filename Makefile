@@ -7,7 +7,7 @@ CFLAGS= -shared -fPIC -g
 LDFLAGS= -lSDL2 -lvulkan libs/funchook/build/libfunchook.a libs/funchook/build/libdistorm.a -g
 
 OBJ_FILES =  main.cpp.o # Unity build
-#OBJ_FILES += libsigscan/libsigscan.c.o # Sigscan library
+OBJ_FILES += libsigscan/libsigscan.c.o # Sigscan library
 OBJ_FILES += imgui/imgui_tables.cpp.o imgui/imgui_draw.cpp.o imgui/imgui_impl_sdl3.cpp.o imgui/imgui_demo.cpp.o imgui/imgui_impl_vulkan.cpp.o imgui/imgui_widgets.cpp.o imgui/imgui.cpp.o imgui/imgui_stdlib.cpp.o # GUI library and OpenGL wrapper
 #OBJ_FILES += hacks/navbot/micropather/micropather.cpp.o # Path solving library
 

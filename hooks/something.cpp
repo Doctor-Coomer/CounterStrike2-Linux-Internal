@@ -2,9 +2,9 @@
 
 #include "../print.hpp"
 
-long (*something_original)(long) = NULL;
+unsigned long (*something_original)(unsigned long, unsigned long) = NULL;
 
-long something_hook(long a) {
+unsigned long something_hook(unsigned long a, unsigned long b) {
   print("test\n");
-  return something_original(a);
+  return something_original(a, b);
 }

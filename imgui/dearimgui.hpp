@@ -28,8 +28,6 @@ namespace ImGui {
     ImGui::SliderFloat(label, v, v_min, v_max, format, flags);
     ImGui::PopStyleVar(1);
   }
-
-  /*
   
   static std::string GetKeyName(SDL_Scancode key) {
     if (key >= 0) {
@@ -64,20 +62,19 @@ namespace ImGui {
   static void KeybindEvent(const SDL_Event* event, bool* waitingFlag, int* keycode) {
     if (!*waitingFlag)
       return;
-
-    if (event->type == SDL_KEYDOWN && event->key.repeat == 0) {
-      if (event->key.keysym.sym == SDLK_ESCAPE) {
+    
+    if (event->type == SDL_EVENT_KEY_DOWN && event->key.repeat == 0) {
+      if (event->key.raw == SDLK_ESCAPE) {
 	*waitingFlag = false; // cancel binding
       } else {
-	*keycode = event->key.keysym.scancode;
+	*keycode = event->key.raw;
 	*waitingFlag = false;
       }
-    } else if (event->type == SDL_MOUSEBUTTONDOWN) {
+    } else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
       *keycode = -event->button.button;
       *waitingFlag = false;
     }
   }
-  */
 }
 
 

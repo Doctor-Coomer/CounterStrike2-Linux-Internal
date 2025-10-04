@@ -5,8 +5,14 @@
 
 #include "../imgui/dearimgui.hpp"
 
+#include "config.hpp"
+
 inline static SDL_Window* sdl_window = NULL;
 inline static bool menu_focused = false;
+
+static void get_input(SDL_Event* event) {
+  ImGui::KeybindEvent(event, &config.aimbot.key.waiting, &config.aimbot.key.button);
+}
 
 static void draw_watermark() {
   ImGui::SetNextWindowPos(ImVec2(10, 10)); 
@@ -17,11 +23,29 @@ static void draw_watermark() {
   ImGui::End();
 }
 
+static void draw_aim_tab() {  
+  ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 27);
+
+  ImGui::Checkbox("Master", &config.aimbot.master);
+
+  ImGui::EndGroup();
+
+  ImGui::SameLine();
+  ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine();
+
+  /* ESP */
+  ImGui::BeginChild("##AimbotMasterChild");
+
+  ImGui::KeybindBox(&config.aimbot.key.waiting, &config.aimbot.key.button);
+  
+  ImGui::EndChild();
+}
+
 static void draw_esp_tab() {  
   ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 27);
 
-  static bool test = true;
-  ImGui::Checkbox("Master", &test);
+  ImGui::Checkbox("Master", &config.esp.master);
 
   ImGui::EndGroup();
 
@@ -58,12 +82,16 @@ static void draw_menu() {
     
     static int tab = 0;
     ImGui::BeginGroup();
-    draw_tab(style, "ESP", &tab, 0);
+    draw_tab(style, "Aimbot", &tab, 0);
+    draw_tab(style, "ESP", &tab, 1);
 
     switch (tab) {
     case 0:
+      draw_aim_tab();
+      break;
+    case 1:
       draw_esp_tab();
-      break;      
+      break;
     }
   }
   
