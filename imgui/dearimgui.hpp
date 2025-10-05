@@ -64,10 +64,10 @@ namespace ImGui {
       return;
     
     if (event->type == SDL_EVENT_KEY_DOWN && event->key.repeat == 0) {
-      if (event->key.raw == SDLK_ESCAPE) {
+      if (event->key.scancode == SDLK_ESCAPE) {
 	*waitingFlag = false; // cancel binding
       } else {
-	*keycode = event->key.raw;
+	*keycode = event->key.scancode;
 	*waitingFlag = false;
       }
     } else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
