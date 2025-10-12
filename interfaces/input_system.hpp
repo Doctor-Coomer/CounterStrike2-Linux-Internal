@@ -21,6 +21,10 @@ public:
     return *(Vec3*)(this + 0x6C0);
   }
 
+  void set_shoot(bool value) {
+    *(bool*)(this + 0x288) = value; 
+  }
+  
 };
 
 inline static Input* input;

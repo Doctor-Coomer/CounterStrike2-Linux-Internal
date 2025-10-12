@@ -1,9 +1,12 @@
 #ifndef PAWN_HPP
 #define PAWN_HPP
 
-#include <vector>
+#include <limits.h>
+#include <string>
 
 #include "../vec.hpp"
+
+#include "../print.hpp"
 
 enum class cs_team;
 
@@ -55,7 +58,6 @@ public:
     if (game_scene_node == nullptr) return Vec3{};
     
     void* bone_data = *(void**)((unsigned long)game_scene_node + 0x190 + 0x80);
-
     if (bone_data == nullptr) return Vec3{};
 
     return *(Vec3*)((unsigned long)bone_data + ((unsigned int)i)*32);
@@ -65,6 +67,20 @@ public:
     Vec3 location = this->get_abs_origin();
     Vec3 offset = *(Vec3*)(this + 0xD28);
     return Vec3{location.x + offset.x, location.y + offset.y, location.z + offset.z};
+  }
+
+  Vec3 get_aim_punch(void) {
+    unsigned long length = *(unsigned long*)(this + 0x16E8);
+    if (length < 1) {
+      return Vec3{};
+    }
+    
+    unsigned long aim_punch_ptr = *(unsigned long*)(this + 0x16E8 + 0x8);
+    if ((void*)aim_punch_ptr == nullptr || aim_punch_ptr > ULONG_LONG_MAX - 50000) {
+      return Vec3{};
+    }
+    
+    return *(Vec3*)(aim_punch_ptr + (length - 1) * 12);
   }
   
   bool get_lifestate(void) {
@@ -77,6 +93,10 @@ public:
 
   int get_health(void) {
     return *(int*)(this + 0x4C4);
+  }
+
+  bool get_gun_game_immunity(void) {
+    return *(bool*)(this + 0x10);
   }
 };
 

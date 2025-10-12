@@ -2,6 +2,7 @@
 #define MENU_HPP
 
 #include <SDL2/SDL.h>
+#include <string>
 
 #include "../imgui/dearimgui.hpp"
 
@@ -16,10 +17,9 @@ static void get_input(SDL_Event* event) {
 
 static void draw_watermark() {
   ImGui::SetNextWindowPos(ImVec2(10, 10)); 
-  ImGui::SetNextWindowSize(ImVec2(150, 30));
+  ImGui::SetNextWindowSize(ImVec2(80, 30));
   ImGui::Begin("##Watermark", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
-    
-  ImGui::TextCentered("I Use Arch BTW!!!");
+  ImGui::TextCentered("LiGNUx");
   ImGui::End();
 }
 
@@ -34,10 +34,21 @@ static void draw_aim_tab() {
   ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine();
 
-  /* ESP */
+  /* AIMBOT */
   ImGui::BeginChild("##AimbotMasterChild");
 
+  ImGui::BeginGroup();
+  ImGui::Text("General");
   ImGui::KeybindBox(&config.aimbot.key.waiting, &config.aimbot.key.button);
+
+  ImGui::Text("FOV: ");
+  ImGui::SameLine();
+  ImGui::SliderFloatHeightPad(" ", &config.aimbot.fov, 0.1f, 180.0f, 1, "%.0f\xC2\xB0");
+  ImGui::Checkbox("Draw FOV", &config.aimbot.draw_fov);
+
+  ImGui::Checkbox("Recoil Compensation", &config.aimbot.recoil);
+  ImGui::Checkbox("Auto Shoot", &config.aimbot.auto_shoot);
+  ImGui::EndGroup();  
   
   ImGui::EndChild();
 }
@@ -56,9 +67,45 @@ static void draw_esp_tab() {
   /* ESP */
   ImGui::BeginChild("##EspMasterChild");
 
+  ImGui::BeginGroup();
+  ImGui::Text("Player");
+  ImGui::Checkbox("Box##Player", &config.esp.player.box);
+  ImGui::Checkbox("Health Bar##Player", &config.esp.player.health_bar);
+  ImGui::Checkbox("Health Text##Player", &config.esp.player.health_text);
+  ImGui::Checkbox("Name##Player", &config.esp.player.name);
+  ImGui::Checkbox("Skeleton##Player", &config.esp.player.skeleton);
+  ImGui::NewLine();
+  ImGui::Text("Flags");
+  ImGui::Checkbox("Target##Player", &config.esp.player.flags.target_indicator);
+  ImGui::EndGroup();
+
   ImGui::EndChild();
 }
 
+static void draw_visuals_tab() {
+  ImGui::SetCursorPosY(ImGui::GetWindowHeight() - 21);
+
+  ImGui::Text(" ");
+
+  ImGui::EndGroup();
+
+  ImGui::SameLine();
+  ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine();
+
+  /* Visuals */
+  ImGui::BeginChild("##VisualsMasterChild");
+
+  /* Camera */
+  ImGui::BeginGroup();
+  ImGui::Text("Camera");
+  ImGui::Checkbox("Override FOV", &config.visuals.override_fov);
+  ImGui::SliderFloat(" ", &config.visuals.custom_fov, 30.1f, 150.0f, "%.0f\xC2\xB0");
+  ImGui::EndGroup();
+
+  ImGui::EndChild();
+
+}
 static void draw_tab(ImGuiStyle* style, const char* name, int* tab, int index) {
   ImVec4 orig_box_color = ImVec4(0.15, 0.15, 0.15, 1);
   
@@ -84,6 +131,7 @@ static void draw_menu() {
     ImGui::BeginGroup();
     draw_tab(style, "Aimbot", &tab, 0);
     draw_tab(style, "ESP", &tab, 1);
+    draw_tab(style, "Visuals", &tab, 2);
 
     switch (tab) {
     case 0:
@@ -91,6 +139,9 @@ static void draw_menu() {
       break;
     case 1:
       draw_esp_tab();
+      break;
+    case 2:
+      draw_visuals_tab();
       break;
     }
   }

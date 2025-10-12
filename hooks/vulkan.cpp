@@ -7,9 +7,10 @@
 #include "../imgui/imgui_impl_sdl3.h"
 
 //#include "../interfaces/surface.hpp"
-//#include "../interfaces/engine.hpp"
+#include "../interfaces/engine.hpp"
 
 #include "../hacks/esp/esp.cpp"
+#include "../hacks/visuals/fov_circle.cpp"
 
 #include "../print.hpp"
 
@@ -25,7 +26,7 @@ static VkExtent2D vk_image_extent = { };
 static VkPhysicalDevice vk_physical_device = VK_NULL_HANDLE;
 static VkInstance vk_instance = VK_NULL_HANDLE;
 static VkPipelineCache vk_pipeline_cache = VK_NULL_HANDLE;
-static uint32_t min_image_count = 3;
+static uint32_t min_image_count = 2;
 static ImGui_ImplVulkanH_Frame g_Frames[8] = { };
 static ImGui_ImplVulkanH_FrameSemaphores g_FrameSemaphores[8] = { };
 static uint32_t count;
@@ -55,7 +56,7 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     ImGui::CreateContext();
     ImGui_ImplSDL3_InitForVulkan(sdl_window);
     ImGui::GetIO().Fonts->AddFontDefault();
-    esp_font = ImGui::GetIO().Fonts->AddFontFromFileTTF("/run/host/usr/share/fonts/TTF/ProggyTiny.ttf", 14);
+    esp_font = ImGui::GetIO().Fonts->AddFontFromFileTTF("/run/host/usr/share/fonts/TTF/ProggyClean.ttf", 13);
   }
 
   // https://github.com/bruhmoment21/UniversalHookX/blob/main/UniversalHookX/src/hooks/backend/vulkan/hook_vulkan.cpp#L418
@@ -309,22 +310,31 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
       style->Colors[ImGuiCol_HeaderHovered]    = ImVec4(0.869346734, 0.450980392, 0.211764706, 0.5);
       style->Colors[ImGuiCol_HeaderActive]     = ImVec4(0.919346734, 0.500980392, 0.261764706, 0.6);
 
+
+      //style->AntiAliasedLines = false;
     }
 
     if (ImGui::IsKeyPressed(ImGuiKey_Insert, false) || ImGui::IsKeyPressed(ImGuiKey_F11, false)) {
       menu_focused = !menu_focused;
-      //surface->set_cursor_visible(menu_focused);
     }
 
     /* Do our overlay drawing */
-    ImGui_ImplVulkan_NewFrame( );
+    ImGui_ImplVulkan_NewFrame();
     ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame( );
+    ImGui::NewFrame();
+
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(3440, 1440));
+    ImGui::Begin("Overlay", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground);
 
     ImGui::PushFont(esp_font);
     draw_players();
     ImGui::PopFont();
-            
+
+    draw_fov();
+
+    ImGui::End();
+    
     if (menu_focused) {
       draw_menu();
     }  
@@ -368,6 +378,8 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     }
   }
 
+  //print("%d\n", engine->is_in_game());
+  
   return queue_present_original(queue, present_info);
 }
 

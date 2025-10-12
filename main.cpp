@@ -6,6 +6,8 @@
 
 #include "interfaces/input_system.hpp"
 #include "interfaces/game_entity_system.hpp"
+#include "interfaces/engine.hpp"
+#include "interfaces/cvar_system.hpp"
 
 #include "funchook/funchook.h"
 #include "libsigscan/libsigscan.h"
@@ -14,6 +16,7 @@
 #include "hooks/vulkan.cpp"
 
 #include "hooks/input_create_move.cpp"
+#include "hooks/allow_camera_angle_change.cpp"
 
 #include "hooks/something.cpp"
 
@@ -94,6 +97,8 @@ void entry() {
   unsigned long next_instruction1 = (unsigned long)(func_addr1 + 0x7);
   input = (Input*)((void*)(next_instruction1 + input_eaddr));
 
+  print("CInput: %p\n", input);
+  
   // https://github.com/avitran0/deadlocked/blob/406ba57037ad4462740183396dad4fa5e12468c5/src/cs2/mod.rs#L360
   unsigned long func_addr2 = (unsigned long)sigscan_module("libclient.so", "4C 8D 05 ? ? ? ? 48 8D 0D ? ? ? ? 48 8B 38");
   unsigned int view_matrix_eaddr = *(unsigned int*)(func_addr2 + 0x3);
@@ -104,7 +109,10 @@ void entry() {
   unsigned long func_addr3 = (unsigned long)sigscan_module("libclient.so", "48 83 3D ? ? ? ? 00 0F 95 C0 C3");
   unsigned int localentity_eaddr = *(unsigned int*)(func_addr3 + 0x3);
   unsigned long next_instruction3 = (unsigned long)(func_addr3 + 0x8);
-  localentity = ((Entity**)(next_instruction3 + localentity_eaddr));
+  localentity_ptr = ((Entity**)(next_instruction3 + localentity_eaddr));
+  
+  engine = (Engine*)get_interface("libengine2.so", "Source2EngineToClient001");
+  cvar_system = (CvarSystem*)get_interface("libtier0.so", "VEngineCvar007");
   
   void* game_resource_service = get_interface("libengine2.so", "GameResourceServiceClientV001");
   entity_system = (GameEntitySystem*)*(void**)((unsigned long)game_resource_service + 0x50);
@@ -117,7 +125,13 @@ void entry() {
   } else {
     print("Input::CreateMove hooked\n");
   }
-  
+
+  allow_camera_angle_change_original = (void (*)(void*, int))input_vtable[8];
+  if (!write_to_table(input_vtable, 8, (void*)allow_camera_angle_change_hook)) {
+    print("Input::AllowCameraAngleChange hook failed\n");
+  } else {
+    print("Input::AllowCameraAngleChange hooked\n");
+  }
   
   funchook = funchook_create();
 
@@ -285,6 +299,10 @@ void exit() {
   if (!write_to_table(input_vtable, 6, (void*)input_create_move_original)) {
     print("Input::CreateMove failed to restore hook\n");
   }
-  
+
+  if (!write_to_table(input_vtable, 8, (void*)allow_camera_angle_change_original)) {
+    print("Input::AllowCameraAngleChange failed to restore hook\n");
+  }
+
   funchook_uninstall(funchook, 0);
 }

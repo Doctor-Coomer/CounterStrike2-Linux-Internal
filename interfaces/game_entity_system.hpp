@@ -7,10 +7,10 @@
 
 class Pawn;
 
-static Entity** localentity = nullptr;  
+static Entity** localentity_ptr = nullptr;  
 class GameEntitySystem {
 public:
-  Entity* entity_handle_from_index(unsigned int i) {
+  Entity* entity_from_index(unsigned int i) {
     unsigned long v1 = (unsigned long)*(void**)(this + 0x8 * (i >> 9) + 0x10);
     return *(Entity**)(v1 + 120 * (i & 0x1FF));
   }
@@ -22,7 +22,7 @@ public:
   }
 
   Pawn* pawn_from_index(unsigned int i) {
-    Entity* entity = entity_handle_from_index(i);
+    Entity* entity = entity_from_index(i);
     if (entity == nullptr) {
       return nullptr;
     }
@@ -31,12 +31,16 @@ public:
   }
 
   Entity* get_localentity(void) {
-    return *localentity;
+    return *localentity_ptr;
   }
+
   Pawn* get_localpawn(void) {
-    if (*localentity == nullptr) return nullptr;
+    Entity* localentity = this->get_localentity();
+    if (localentity == nullptr) {
+      return nullptr;
+    }
     
-    return this->pawn_from_pawn_handle((*localentity)->get_pawn_handle());
+    return this->pawn_from_pawn_handle(localentity->get_pawn_handle());
   }
 };
 

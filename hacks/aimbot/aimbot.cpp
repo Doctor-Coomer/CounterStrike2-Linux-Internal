@@ -1,3 +1,4 @@
+#include "aimbot.hpp"
 
 #include "../../gui/config.hpp"
 
@@ -5,12 +6,13 @@
 
 #include "../../interfaces/input_system.hpp"
 #include "../../interfaces/game_entity_system.hpp"
+#include "../../interfaces/cvar_system.hpp"
 
 #include "../../classes/pawn.hpp"
 
-static Pawn* target_pawn;
+bool shoot_next_tick = false;
 
-void aimbot() {
+void aimbot(Vec3 original_view_angles) {
   if (config.aimbot.master == false) return;
   
   Pawn* localpawn = entity_system->get_localpawn();
@@ -18,17 +20,22 @@ void aimbot() {
     return;
   }
 
-  Vec3 original_view_angles = input->get_view_angles();
-  
+  static Convar* team_is_enemy = cvar_system->get_convar("mp_teammates_are_enemies");
+  if (team_is_enemy == nullptr) {
+    return;
+  }
+
   float smallest_fov_angle = __FLT_MAX__;
   
   for (unsigned int i = 1; i <= 64; ++i) {
-  
+
     Pawn* pawn = entity_system->pawn_from_index(i);
 
     if (pawn == nullptr      ||
 	pawn == localpawn    ||
+	localpawn->get_lifestate() != 0 ||
 	pawn->is_dormant()   ||
+	(pawn->get_cs_team() == localpawn->get_cs_team() && team_is_enemy->get_value<bool>() == false) ||
 	pawn->get_lifestate() != 0)
       {
 	continue;
@@ -51,6 +58,10 @@ void aimbot() {
       .z = 0
     };
 
+    if (config.aimbot.recoil == true) {
+      view_angles -= (localpawn->get_aim_punch() * 2);
+    }
+    
     float x_diff = view_angles.x - original_view_angles.x;
     float y_diff = view_angles.y - original_view_angles.y;
 
@@ -61,14 +72,22 @@ void aimbot() {
     float clamped_y = y > 180.0f ? 180.0f : y < -180.0f ? -180.0f : y;
 
     float fov = hypotf(clamped_x, clamped_y);
-
-    if (fov <= 45 && fov < smallest_fov_angle) {
-	target_pawn = pawn;
-	smallest_fov_angle = fov;
+    
+    if (fov <= config.aimbot.fov && fov < smallest_fov_angle) {
+      target_pawn = pawn;
+      smallest_fov_angle = fov;
     }
-
-    if (is_button_down(config.aimbot.key) && target_pawn == pawn)
-      input->set_view_angles(view_angles);
+    
+    if (target_pawn == pawn && (fov > config.aimbot.fov)) {
+      target_pawn = nullptr;
+    }
+    
+    if (is_button_down(config.aimbot.key) && target_pawn == pawn) {
+	input->set_view_angles(view_angles);
+	if (config.aimbot.auto_shoot == true) {
+	  input->set_shoot(true);
+	}
+    }
   }
 
 }

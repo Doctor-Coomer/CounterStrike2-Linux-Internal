@@ -13,7 +13,9 @@ bool (*input_create_move_original)(void*, int, bool);
 bool input_create_move_hook(void* me, int slot, bool active) {
   bool ret = input_create_move_original(me, slot, active);
 
-  aimbot();
-
+  Vec3 original_view_angles = input->get_view_angles();
+  
+  aimbot(original_view_angles);
+  
   return ret;
 }
