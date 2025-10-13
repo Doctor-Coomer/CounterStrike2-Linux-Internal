@@ -7,7 +7,7 @@ Note: I do not care about security against VAC/VAC Live/VAC NET/Overwatch. If yo
 Clone the repo using `git`.  
 
 ```bash
-$ git clone https://github.com/Doctor-Coomer/TeamFortress2-Linux-Internal.git
+$ git clone https://github.com/Doctor-Coomer/CounterStrike2-Linux-Internal.git
 $ cd TeamFortress2-Linux-Internal/
 ```
 
@@ -27,7 +27,7 @@ $ ./build.sh
 ```
 
 ### Running
-Injecting the program into Team Fortress 2.  
+Injecting the program into Counter Strike 2.  
 ```bash
 $ sudo ./inject.sh
 [sudo] password for user:
