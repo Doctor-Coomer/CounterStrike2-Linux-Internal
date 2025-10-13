@@ -1,6 +1,8 @@
 #ifndef VEC_HPP
 #define VEC_HPP
 
+#include "imgui/dearimgui.hpp"
+
 struct Vec2 {
   int x = 0, y = 0;
 };
@@ -60,6 +62,11 @@ struct RGBA_float {
     return RGBA{.r = int(r * 255), .g = int(g * 255), .b = int(b * 255), .a = int(a * 255)};
   }
 
+  ImU32 to_ImU32() {
+    RGBA rgba = this->to_RGBA();
+    return IM_COL32(rgba.r, rgba.g, rgba.b, rgba.a);
+  }
+  
   float* to_arr() {
     return (float*)this;
   }

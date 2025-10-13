@@ -48,15 +48,12 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     print("sdl_window not found yet\n");
     return queue_present_original(queue, present_info);    
   }  
-
-  static ImFont* esp_font;
   
   // Initialize ImGui context if we haven't already
   if (ImGui::GetCurrentContext() == nullptr) {
     ImGui::CreateContext();
     ImGui_ImplSDL3_InitForVulkan(sdl_window);
     ImGui::GetIO().Fonts->AddFontDefault();
-    esp_font = ImGui::GetIO().Fonts->AddFontFromFileTTF("/run/host/usr/share/fonts/TTF/ProggyClean.ttf", 13);
   }
 
   // https://github.com/bruhmoment21/UniversalHookX/blob/main/UniversalHookX/src/hooks/backend/vulkan/hook_vulkan.cpp#L418
@@ -327,9 +324,7 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     ImGui::SetNextWindowSize(ImVec2(3440, 1440));
     ImGui::Begin("Overlay", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoBackground);
 
-    ImGui::PushFont(esp_font);
     draw_players();
-    ImGui::PopFont();
 
     draw_fov();
 
@@ -337,7 +332,7 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
     
     if (menu_focused) {
       draw_menu();
-    }  
+    }
 
     draw_watermark();
 

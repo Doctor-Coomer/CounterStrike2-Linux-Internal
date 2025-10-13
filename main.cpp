@@ -296,6 +296,8 @@ void entry() {
 
 __attribute__((destructor))
 void exit() {
+  print("Uninjecting...\n");
+  
   if (!write_to_table(input_vtable, 6, (void*)input_create_move_original)) {
     print("Input::CreateMove failed to restore hook\n");
   }

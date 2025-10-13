@@ -5,6 +5,8 @@
 
 #include "../gui/menu.hpp"
 
+#include "../print.hpp"
+
 int  (*peep_events_original)(SDL_Event*, int, SDL_EventAction, int, int) = NULL;
 void (*get_window_size_original)(SDL_Window* window, int* w, int* h) = NULL;
 
@@ -15,7 +17,7 @@ int peep_events_hook(SDL_Event* events, int numevents, SDL_EventAction action, i
     ImGui_ImplSDL3_ProcessEvent(events);
 
   get_input(events);
-  
+
   return ret;
 }
 

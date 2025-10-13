@@ -3,6 +3,8 @@
 
 #include <SDL3/SDL.h>
 
+#include "../vec.hpp"
+
 struct button {
   int button;
   bool waiting = false;
@@ -26,13 +28,20 @@ struct ESP {
 
   struct {
     bool box = false;
+    RGBA_float box_color = {.r = 1, .g = 0.501960784, .b = 0, .a = 1};
+
     bool health_bar = true;
     bool health_text = true;
-    bool name = true;
-    bool skeleton = true;
 
+    bool name = true;
+    RGBA_float name_color = {.r = 1, .g = 1, .b = 1, .a = 1};    
+    
+    bool skeleton = true;
+    RGBA_float skeleton_color = {.r = 1, .g = 1, .b = 1, .a = 1};    
+    
     struct {
       bool target_indicator = true;
+      RGBA_float target_indicator_color = {.r = 1, .g = 0, .b = 1, .a = 1};    
     } flags;
     
   } player;

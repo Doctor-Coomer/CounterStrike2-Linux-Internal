@@ -70,13 +70,26 @@ static void draw_esp_tab() {
   ImGui::BeginGroup();
   ImGui::Text("Player");
   ImGui::Checkbox("Box##Player", &config.esp.player.box);
+  ImGui::SameLine();
+  ImGui::ColorEdit4("##BoxColorPlayer", config.esp.player.box_color.to_arr(), ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs);
+
   ImGui::Checkbox("Health Bar##Player", &config.esp.player.health_bar);
+  ImGui::SameLine();
   ImGui::Checkbox("Health Text##Player", &config.esp.player.health_text);
+
   ImGui::Checkbox("Name##Player", &config.esp.player.name);
+  ImGui::SameLine();
+  ImGui::ColorEdit4("##NameColorPlayer", config.esp.player.name_color.to_arr(), ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs);  
+  
   ImGui::Checkbox("Skeleton##Player", &config.esp.player.skeleton);
+  ImGui::SameLine();
+  ImGui::ColorEdit4("##SkeletonColorPlayer", config.esp.player.skeleton_color.to_arr(), ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs);  
+  
   ImGui::NewLine();
   ImGui::Text("Flags");
   ImGui::Checkbox("Target##Player", &config.esp.player.flags.target_indicator);
+  ImGui::SameLine();
+  ImGui::ColorEdit4("##TargetColorPlayer", config.esp.player.flags.target_indicator_color.to_arr(), ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs);    
   ImGui::EndGroup();
 
   ImGui::EndChild();

@@ -33,10 +33,10 @@ void draw_players() {
     return;
   }
 
-  static Convar* viewmodel = cvar_system->get_convar("viewmodel_fov");
-
   if (config.visuals.override_fov == true) {
     fov->set_value<float>(config.visuals.custom_fov);
+  } else {
+    fov->set_value<float>(0);
   }
 
   Vec2 screen_size = {3440, 1440};
@@ -65,18 +65,20 @@ void draw_players() {
 
     
     float box_offset = (screen.y - screen_offset.y)*0.25;
-
+    
     if (config.esp.player.box == true) {    
+      ImU32 color = config.esp.player.box_color.to_ImU32();
+      
       draw_list->AddLine(ImVec2(screen.x + box_offset, screen.y + 2), ImVec2(screen.x + box_offset, screen_offset.y - 2), IM_COL32(0, 0, 0, 255), 4);
       draw_list->AddLine(ImVec2(screen.x - box_offset, screen.y + 2), ImVec2(screen.x - box_offset, screen_offset.y - 2), IM_COL32(0, 0, 0, 255), 4);
       draw_list->AddLine(ImVec2(screen.x - box_offset, screen.y), ImVec2(screen.x + box_offset, screen.y), IM_COL32(0, 0, 0, 255), 4);
       draw_list->AddLine(ImVec2(screen.x - box_offset, screen_offset.y), ImVec2(screen.x + box_offset, screen_offset.y), IM_COL32(0, 0, 0, 255), 4);
 
     
-      draw_list->AddLine(ImVec2(screen.x + box_offset, screen.y + 1), ImVec2(screen.x + box_offset, screen_offset.y - 1), IM_COL32(255, 255, 255, 255), 2);
-      draw_list->AddLine(ImVec2(screen.x - box_offset, screen.y + 1), ImVec2(screen.x - box_offset, screen_offset.y - 1), IM_COL32(255, 255, 255, 255), 2);
-      draw_list->AddLine(ImVec2(screen.x - box_offset, screen.y), ImVec2(screen.x + box_offset, screen.y), IM_COL32(255, 255, 255, 255), 2);
-      draw_list->AddLine(ImVec2(screen.x - box_offset, screen_offset.y), ImVec2(screen.x + box_offset, screen_offset.y), IM_COL32(255, 255, 255, 255), 2);
+      draw_list->AddLine(ImVec2(screen.x + box_offset, screen.y + 1), ImVec2(screen.x + box_offset, screen_offset.y - 1), color, 2);
+      draw_list->AddLine(ImVec2(screen.x - box_offset, screen.y + 1), ImVec2(screen.x - box_offset, screen_offset.y - 1), color, 2);
+      draw_list->AddLine(ImVec2(screen.x - box_offset, screen.y), ImVec2(screen.x + box_offset, screen.y), color, 2);
+      draw_list->AddLine(ImVec2(screen.x - box_offset, screen_offset.y), ImVec2(screen.x + box_offset, screen_offset.y), color, 2);
     }
 
     ImU32 color;
@@ -106,15 +108,17 @@ void draw_players() {
     }
     
     if (config.esp.player.flags.target_indicator == true && pawn == target_pawn) {
-      draw_list->AddTextShadow(ImVec2(screen.x + box_offset + 5, screen_offset.y - 2), IM_COL32(255, 0, 255, 255), "Target");
+      draw_list->AddTextShadow(ImVec2(screen.x + box_offset + 5, screen_offset.y - 2), config.esp.player.flags.target_indicator_color.to_ImU32(), "Target");
     }
 
     if (config.esp.player.name == true) {
       const char* name = entity->get_name();
-      draw_list->AddTextShadow(ImVec2(screen.x - ((6*strlen(name))*0.5), screen_offset.y - 15), IM_COL32(255, 255, 255, 255), name);
+      draw_list->AddTextShadow(ImVec2(screen.x - ((6*strlen(name))*0.5), screen_offset.y - 15), config.esp.player.name_color.to_ImU32(), name);
     }
     
     if (config.esp.player.skeleton == true) {
+
+      ImU32 color = config.esp.player.skeleton_color.to_ImU32();
     
       for (unsigned int i = Bone::hip; i < Bone::head; ++i) {
 	Vec3 bone_location = pawn->get_bone_location(i);
@@ -123,7 +127,7 @@ void draw_players() {
 	Vec3 bone_location2 = pawn->get_bone_location(i+1);
 	Vec3 bone_screen2;
 	if (!world_to_screen(bone_location2, &bone_screen2)) continue;
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);
       }
 
       Vec3 bone_location = pawn->get_bone_location(Bone::spine4);
@@ -131,7 +135,7 @@ void draw_players() {
       Vec3 bone_location2 = pawn->get_bone_location(Bone::left_shoulder);
       Vec3 bone_screen2;
       if (world_to_screen(bone_location2, &bone_screen2) && world_to_screen(bone_location, &bone_screen)) {
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);      
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);      
       }
       
 
@@ -142,13 +146,13 @@ void draw_players() {
 	Vec3 bone_location2 = pawn->get_bone_location(i+1);
 	Vec3 bone_screen2;
 	if (!world_to_screen(bone_location2, &bone_screen2)) continue;
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);
       }
     
       bone_location = pawn->get_bone_location(Bone::spine4);
       bone_location2 = pawn->get_bone_location(Bone::right_shoulder);
       if (world_to_screen(bone_location2, &bone_screen2) && world_to_screen(bone_location, &bone_screen)) {
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);      
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);      
       }
 
     
@@ -159,7 +163,7 @@ void draw_players() {
 	Vec3 bone_location2 = pawn->get_bone_location(i+1);
 	Vec3 bone_screen2;
 	if (!world_to_screen(bone_location2, &bone_screen2)) continue;
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);
       }
     
       for (unsigned int i = Bone::left_hip; i < Bone::left_foot; ++i) {
@@ -169,7 +173,7 @@ void draw_players() {
 	Vec3 bone_location2 = pawn->get_bone_location(i+1);
 	Vec3 bone_screen2;
 	if (!world_to_screen(bone_location2, &bone_screen2)) continue;
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);
       }
     
       for (unsigned int i = Bone::right_hip; i < Bone::right_foot; ++i) {
@@ -179,18 +183,18 @@ void draw_players() {
 	Vec3 bone_location2 = pawn->get_bone_location(i+1);
 	Vec3 bone_screen2;
 	if (!world_to_screen(bone_location2, &bone_screen2)) continue;
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);
       }
 
       bone_location = pawn->get_bone_location(Bone::hip);
       bone_location2 = pawn->get_bone_location(Bone::left_hip);
       if (world_to_screen(bone_location2, &bone_screen2) && world_to_screen(bone_location, &bone_screen)) {
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);      
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);      
       }
 
       bone_location2 = pawn->get_bone_location(Bone::right_hip);
       if (world_to_screen(bone_location2, &bone_screen2) && world_to_screen(bone_location, &bone_screen)) {
-	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), IM_COL32(255, 255, 255, 255), 1);      
+	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);      
       }
     }
   }

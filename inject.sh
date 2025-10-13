@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LIB_PATH=$(pwd)/cs2.so
-PROCID=$(pgrep cs2 | head -n 1)
+PROCID=$(pidof cs2)
 
 if [[ "$(execstack -q cs2.so)" = "X cs2.so" ]]; then
     execstack -c cs2.so
@@ -36,8 +36,7 @@ trap unload SIGINT
 
 LIB_HANDLE=$(sudo gdb -n --batch -ex "attach $PROCID" \
                   -ex "call ((void * (*) (const char*, int)) dlopen)(\"$LIB_PATH\", 1)" \
-                  -ex "detach" 2> /dev/null | grep -oP '\$1 = \(void \*\) \K0x[0-9a-f]+'
-	  )
+                  -ex "detach" 2> /dev/null | grep -oP '\$1 = \(void \*\) \K0x[0-9a-f]+')
 
 if [ -z "$LIB_HANDLE" ] || [[ "$LIB_HANDLE" = "0x0" ]]; then
     echo "Failed to load library at $LIB_HANDLE"
