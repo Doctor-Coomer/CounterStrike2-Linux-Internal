@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Clone and build funchook
+# Clone and build funchook with custom build flags
 if [ -d "libs/funchook" ]; then
     rm -rf libs
 fi
