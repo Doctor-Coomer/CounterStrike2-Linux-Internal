@@ -22,9 +22,8 @@ inline static bool world_to_screen(Vec3 point, Vec3* screen) {
     return false;
 
   const float invw = 1.0 / w;
-  const Vec3 screen_size = {3440.0, 1440.0};
-  const float x = screen_size.x * 0.5;
-  const float y = screen_size.y * 0.5;
+  const float x = ImGui::GetIO().DisplaySize.x  * 0.5;
+  const float y = ImGui::GetIO().DisplaySize.y * 0.5;
 
   screen->x = x + (((*view_matrix)[0][0] * point.x + (*view_matrix)[0][1] * point.y + (*view_matrix)[0][2] * point.z + (*view_matrix)[0][3]) * invw * x);
   screen->y = y - (((*view_matrix)[1][0] * point.x + (*view_matrix)[1][1] * point.y + (*view_matrix)[1][2] * point.z + (*view_matrix)[1][3]) * invw * y);
