@@ -213,15 +213,15 @@ void entry() {
     queue_info.pQueuePriorities = &queue_priority;
 
     VkDeviceCreateInfo create_info2 = { };
-    create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    create_info2.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     create_info2.queueCreateInfoCount = 1;
     create_info2.pQueueCreateInfos = &queue_info;
-    create_info.enabledExtensionCount = 1;
-    create_info.ppEnabledExtensionNames = &device_extension;
+    create_info2.enabledExtensionCount = 1;
+    create_info2.ppEnabledExtensionNames = &device_extension;
 
     VkDevice vk_fake_device = VK_NULL_HANDLE;
 
-    vkCreateDevice(vk_physical_device, (const VkDeviceCreateInfo*)&create_info, vk_allocator, &vk_fake_device);
+    vkCreateDevice(vk_physical_device, (const VkDeviceCreateInfo*)&create_info2, vk_allocator, &vk_fake_device);
     if (vk_fake_device == nullptr) {
       print("Failed to create Vulkan dummy device\n");
       return;
