@@ -8,7 +8,7 @@ Clone the repo using `git`.
 
 ```bash
 $ git clone https://github.com/Doctor-Coomer/CounterStrike2-Linux-Internal.git
-$ cd TeamFortress2-Linux-Internal/
+$ cd CounterStrike2-Linux-Internal/
 ```
 
 ### Install Dependencies
