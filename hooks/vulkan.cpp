@@ -11,6 +11,7 @@
 
 #include "../hacks/esp/esp.cpp"
 #include "../hacks/visuals/fov_circle.cpp"
+#include "../hacks/visuals/localpawn_halo.cpp"
 
 #include "../print.hpp"
 
@@ -326,6 +327,8 @@ VkResult queue_present_hook(VkQueue queue, const VkPresentInfoKHR* present_info)
 
     draw_players();
 
+    draw_halo();
+    
     draw_fov();
 
     ImGui::End();

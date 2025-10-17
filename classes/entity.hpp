@@ -13,6 +13,9 @@ public:
     return (const char*)(this + 0x878);
   }
 
+  void set_fov(int fov) {
+    *(int*)(this + 0x90C) = fov;
+  }
 };
 
 #endif

@@ -7,22 +7,33 @@
 
 class Pawn;
 
+const unsigned long entity_identity_size = 0x70;
+
 static Entity** localentity_ptr = nullptr;  
+
+// https://github.com/avitran0/deadlocked/blob/rust/src/cs2/player.rs#L26
 class GameEntitySystem {
 public:
   Entity* entity_from_index(unsigned int i) {
-    unsigned long v1 = (unsigned long)*(void**)(this + 0x8 * (i >> 9) + 0x10);
-    return *(Entity**)(v1 + 120 * (i & 0x1FF));
+    void* bucket_ptr = *(void**)(this + 0x10 + 0x8 * (i >> 9));
+    if (bucket_ptr == nullptr) {
+      return nullptr;
+    }
+
+    return *(Entity**)((unsigned long)bucket_ptr + entity_identity_size * (i & 0x1FF));
   }
 
   Pawn* pawn_from_pawn_handle(int handle) {
-    void* v2 = *(void**)(this + 0x10 + 0x8 * ((handle & 0x7FFF) >> 9));
-    if (v2 == nullptr) return nullptr;
-    return *(Pawn**)((unsigned long)v2 + 120 * (handle & 0x1FF));
+    void* bucket_ptr = *(void**)(this + 0x10 + 0x8 * ((handle & 0x7FFF) >> 9));
+    if (bucket_ptr == nullptr) {
+      return nullptr;
+    }
+    
+    return *(Pawn**)((unsigned long)bucket_ptr + entity_identity_size * (handle & 0x1FF));
   }
 
   Pawn* pawn_from_index(unsigned int i) {
-    Entity* entity = entity_from_index(i);
+    Entity* entity = this->entity_from_index(i);
     if (entity == nullptr) {
       return nullptr;
     }

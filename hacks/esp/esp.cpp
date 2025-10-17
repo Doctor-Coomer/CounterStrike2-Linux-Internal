@@ -10,6 +10,7 @@
 #include "../../interfaces/cvar_system.hpp"
 
 #include "../../classes/pawn.hpp"
+#include <cmath>
 
 void draw_players() {
   if (config.esp.master == false) return;
@@ -17,9 +18,11 @@ void draw_players() {
   //ImDrawList* draw_list = ImGui::GetForegroundDrawList();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLines;
+
   
+  Entity* localentity = entity_system->get_localentity();
   Pawn* localpawn = entity_system->get_localpawn();
-  if (localpawn == nullptr) {
+  if (localentity == nullptr || localpawn == nullptr) {
     return;
   }
 
@@ -32,13 +35,19 @@ void draw_players() {
   if (fov == nullptr) {
     return;
   }
-
+  
   if (config.visuals.override_fov == true) {
     fov->set_value<float>(config.visuals.custom_fov);
+    if (localpawn->get_fov() != config.visuals.custom_viewmodel_fov) {
+      localentity->set_fov(150*(1.f-(float(config.visuals.custom_viewmodel_fov)/150.f)));
+    }
   } else {
     fov->set_value<float>(0);
+    localentity->set_fov(90);
   }
 
+  
+  
   Vec2 screen_size = {3440, 1440};
   
   for (unsigned int i = 1; i <= 64; ++i) {
@@ -197,6 +206,24 @@ void draw_players() {
 	draw_list->AddLine(ImVec2(bone_screen.x, bone_screen.y), ImVec2(bone_screen2.x, bone_screen2.y), color, 1);      
       }
     }
+
+    /*
+    Vec3 prev_pos = {0, 0, 0};
+    for (float rotation = 0.0; rotation <= M_PI*2 + ((M_PI*2)/45); rotation+=((M_PI*2)/45)) {
+      Vec3 pos = {location.x + 40 * cos(rotation), location.y + 40 * sin(rotation), location.z};
+      
+      Vec3 screen_pos;
+      if (world_to_screen(pos, &screen_pos)) {
+	
+	if (prev_pos != Vec3{0, 0, 0}) {
+	  draw_list->AddLine(ImVec2(prev_pos.x, prev_pos.y), ImVec2(screen_pos.x, screen_pos.y), IM_COL32_WHITE, 5);
+	}
+	
+	prev_pos = screen_pos;
+      }
+
+    }
+    */
   }
 
   

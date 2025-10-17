@@ -43,8 +43,14 @@ struct Vec3 {
   }
 
   bool operator!=(const Vec3 v) {
-    return (this->x != v.x && this->y != v.y && this->z != v.z);
+    return (this->x != v.x || this->y != v.y || this->z != v.z);
   }
+
+  /*
+  void operator=(const Vec3 v) {
+    this->x = v.x; this->y = v.y; this->z = v.z;
+  }
+  */
 };
 
 struct __attribute__((aligned(16))) Vec3_aligned {

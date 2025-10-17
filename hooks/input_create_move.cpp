@@ -5,6 +5,7 @@
 #include "../classes/pawn.hpp"
 
 #include "../hacks/aimbot/aimbot.cpp"
+#include "../hacks/thirdperson/thirdperson.cpp"
 
 #include "../print.hpp"
 
@@ -16,6 +17,8 @@ bool input_create_move_hook(void* me, int slot, bool active) {
   Vec3 original_view_angles = input->get_view_angles();
   
   aimbot(original_view_angles);
+
+  thirdperson();
   
   return ret;
 }

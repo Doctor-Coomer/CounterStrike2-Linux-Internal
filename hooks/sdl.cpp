@@ -9,6 +9,7 @@
 
 int  (*peep_events_original)(SDL_Event*, int, SDL_EventAction, int, int) = NULL;
 void (*get_window_size_original)(SDL_Window* window, int* w, int* h) = NULL;
+SDL_Window* (*get_keyboard_focus_original)(void) = NULL;
 
 int peep_events_hook(SDL_Event* events, int numevents, SDL_EventAction action, int min, int max) {
   int ret = peep_events_original(events, numevents, action, min, max);
@@ -28,3 +29,8 @@ void get_window_size_hook(SDL_Window* window, int* w, int* h) {
   get_window_size_original(window, w, h);
 }
 
+SDL_Window* get_keyboard_focus_hook(void) {
+  SDL_Window* window = get_keyboard_focus_original();
+  
+  return window;
+}

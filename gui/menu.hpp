@@ -13,6 +13,7 @@ inline static bool menu_focused = false;
 
 static void get_input(SDL_Event* event) {
   ImGui::KeybindEvent(event, &config.aimbot.key.waiting, &config.aimbot.key.button);
+  ImGui::KeybindEvent(event, &config.visuals.thirdperson.key.waiting, &config.visuals.thirdperson.key.button);
 }
 
 static void draw_watermark() {
@@ -112,8 +113,29 @@ static void draw_visuals_tab() {
   /* Camera */
   ImGui::BeginGroup();
   ImGui::Text("Camera");
+  ImGui::Text("Key: "); ImGui::SameLine();
+  ImGui::KeybindBox(&config.visuals.thirdperson.key.waiting, &config.visuals.thirdperson.key.button); ImGui::SameLine();
+  ImGui::Checkbox("Thirdperson", &config.visuals.thirdperson.enabled);
+
+  ImGui::NewLine();
+  ImGui::NewLine();
+  
   ImGui::Checkbox("Override FOV", &config.visuals.override_fov);
-  ImGui::SliderFloat(" ", &config.visuals.custom_fov, 30.1f, 150.0f, "%.0f\xC2\xB0");
+  ImGui::SliderFloat("##fov", &config.visuals.custom_fov, 30.1f, 150.0f, "%.0f\xC2\xB0");
+  ImGui::SliderInt("##viewmodelfov", &config.visuals.custom_viewmodel_fov, 40, 150, "%d\xC2\xB0");
+  ImGui::EndGroup();
+
+  ImGui::NewLine();
+  ImGui::NewLine();
+  
+  ImGui::BeginGroup();
+  ImGui::Text("Hat");
+  ImGui::Checkbox("Enable", &config.visuals.hat.enabled); ImGui::SameLine();
+  ImGui::ColorEdit4("##HatColor", config.visuals.hat.hat_color.to_arr(), ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoInputs);    
+  ImGui::Checkbox("Rice", &config.visuals.hat.rice);
+  ImGui::SliderFloat("Radius", &config.visuals.hat.radius, 1.0f, 50.0f, "%.0f");
+  ImGui::SliderFloat("Base offset", &config.visuals.hat.z_offset_base, 0.0f, 50.0f, "%.0f");
+  ImGui::SliderFloat("Tip offset", &config.visuals.hat.z_offset_tip, 0.0f, 50.0f, "%.0f");
   ImGui::EndGroup();
 
   ImGui::EndChild();

@@ -39,6 +39,19 @@ public:
     return *(void**)(this + 0x4A8);
   }
 
+  void* get_camera_services(void) {
+    return *(void**)(this + 0x13F0);
+  }
+
+  float get_fov(void) {
+    void* camera_services = this->get_camera_services();
+    if (camera_services == nullptr) {
+      return 0.0;
+    }
+
+    return *(int*)((unsigned long)camera_services + 0x290);
+  }  
+
   Vec3 get_abs_origin(void) {
     void* game_scene_node = this->get_game_scene_node();
     if (game_scene_node == nullptr) return Vec3{};
@@ -70,12 +83,12 @@ public:
   }
 
   Vec3 get_aim_punch(void) {
-    unsigned long length = *(unsigned long*)(this + 0x16E8);
+    unsigned long length = *(unsigned long*)(this + 0x16D0);
     if (length < 1) {
       return Vec3{};
     }
     
-    unsigned long aim_punch_ptr = *(unsigned long*)(this + 0x16E8 + 0x8);
+    unsigned long aim_punch_ptr = *(unsigned long*)(this + 0x16D0 + 0x8);
     if ((void*)aim_punch_ptr == nullptr || aim_punch_ptr > ULONG_LONG_MAX - 50000) {
       return Vec3{};
     }
@@ -84,7 +97,7 @@ public:
   }
   
   bool get_lifestate(void) {
-    return *(bool*)(this + 0x4C8);
+    return *(bool*)(this + 0x4CC);
   }
 
   enum cs_team get_cs_team(void) {

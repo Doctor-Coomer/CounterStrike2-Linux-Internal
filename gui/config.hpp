@@ -50,6 +50,21 @@ struct ESP {
 struct Visuals {
   bool override_fov = false;
   float custom_fov = 90;
+  int custom_viewmodel_fov = 90;
+
+  struct {
+    struct button key = {.button = SDL_SCANCODE_LALT};
+    bool enabled = false;
+  } thirdperson;
+
+  struct {
+    bool enabled = true;
+    bool rice = false;
+    RGBA_float hat_color = {.r = 1, .g = 1, .b = 0, .a = 1};
+    float radius = 10;
+    float z_offset_base = 11;
+    float z_offset_tip = 14;
+  } hat;
 };
 
 struct {

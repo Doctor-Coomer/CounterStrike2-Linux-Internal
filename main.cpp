@@ -88,6 +88,8 @@ funchook_t* funchook;
 //call ((void* (*)(const char*, int))dlopen)("/home/DrCoomer/Programming/c++/CounterStrike2-Linux-Internal/cs2.so",1)
 //call ((const char* (*)(void))dlerror)()
 
+//TODO: Add Netvar/Schema (dunno what its called) manager
+
 __attribute__((constructor))
 void entry() {  
 
@@ -96,7 +98,10 @@ void entry() {
   unsigned int input_eaddr = *(unsigned int*)(func_addr1 + 0x3);
   unsigned long next_instruction1 = (unsigned long)(func_addr1 + 0x7);
   input = (Input*)((void*)(next_instruction1 + input_eaddr));
-
+  if (input == nullptr) {
+    print("CInput is null\n");
+    return;
+  }
   print("CInput: %p\n", input);
   
   // https://github.com/avitran0/deadlocked/blob/406ba57037ad4462740183396dad4fa5e12468c5/src/cs2/mod.rs#L360
@@ -104,14 +109,30 @@ void entry() {
   unsigned int view_matrix_eaddr = *(unsigned int*)(func_addr2 + 0x3);
   unsigned long next_instruction2 = (unsigned long)(func_addr2 + 0x7);
   view_matrix = ((float(*)[4][4])(next_instruction2 + view_matrix_eaddr));
+  if (view_matrix == nullptr) {
+    print("view_matrix is null\n");
+    return;
+  }
+  print("view_matrix: %p\n", view_matrix);
 
   // https://github.com/avitran0/deadlocked/blob/rust/src/cs2/mod.rs#L346
   unsigned long func_addr3 = (unsigned long)sigscan_module("libclient.so", "48 83 3D ? ? ? ? 00 0F 95 C0 C3");
   unsigned int localentity_eaddr = *(unsigned int*)(func_addr3 + 0x3);
   unsigned long next_instruction3 = (unsigned long)(func_addr3 + 0x8);
   localentity_ptr = ((Entity**)(next_instruction3 + localentity_eaddr));
+  if (localentity_ptr == nullptr) {
+    print("localplayer_ptr is null\n");
+    return;
+  }
+  print("localentity_ptr: %p\n", localentity_ptr);
   
   engine = (Engine*)get_interface("libengine2.so", "Source2EngineToClient001");
+  if (engine == nullptr) {
+    print("Source2EngineToClient001 is null\n");
+  }
+  print("engine: %p\n", engine);
+
+  
   cvar_system = (CvarSystem*)get_interface("libtier0.so", "VEngineCvar007");
   
   void* game_resource_service = get_interface("libengine2.so", "GameResourceServiceClientV001");
@@ -146,121 +167,125 @@ void entry() {
   if (lib_vulkan_handle == nullptr)
     lib_vulkan_handle = dlopen("/run/host/usr/lib64/libvulkan.so.1", RTLD_LAZY | RTLD_NOLOAD); // Some distributions have a lib64 directory instead
 
-  if (lib_vulkan_handle == nullptr) print("Can't find libvulkan!\n");
-  
-  if (lib_vulkan_handle != nullptr) {
-    print("Vulkan loaded at %p\n", lib_vulkan_handle);
-
-    // https://github.com/bruhmoment21/UniversalHookX/blob/main/UniversalHookX/src/hooks/backend/vulkan/hook_vulkan.cpp#L47
-    VkInstanceCreateInfo create_info = {};
-    constexpr const char* instance_extension = "VK_KHR_surface";
-      
-    create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    create_info.enabledExtensionCount = 1;
-    create_info.ppEnabledExtensionNames = &instance_extension;
-  
-    // Create Vulkan Instance without any debug feature
-    vkCreateInstance(&create_info, vk_allocator, &vk_instance);
-  
-    uint32_t gpu_count;
-    vkEnumeratePhysicalDevices(vk_instance, &gpu_count, NULL);
-    IM_ASSERT(gpu_count > 0);
-
-    VkPhysicalDevice* gpus = new VkPhysicalDevice[sizeof(VkPhysicalDevice) * gpu_count];
-    vkEnumeratePhysicalDevices(vk_instance, &gpu_count, gpus);
-
-    // If a number >1 of GPUs got reported, find discrete GPU if present, or use first one available. This covers
-    // most common cases (multi-gpu/integrated+dedicated graphics). Handling more complicated setups (multiple
-    // dedicated GPUs) is out of scope of this sample.
-    int use_gpu = 0;
-    for (int i = 0; i < (int)gpu_count; ++i) {
-      VkPhysicalDeviceProperties properties;
-      vkGetPhysicalDeviceProperties(gpus[i], &properties);
-      if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-	use_gpu = i;
-	break;
-      }
-    }
-	
-    vk_physical_device = gpus[use_gpu];
-
-    delete[] gpus;
-
-    vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device, &count, NULL);
-
-    queue_families = (VkQueueFamilyProperties*)malloc(count*sizeof(VkQueueFamilyProperties));
-
-    vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device, &count, queue_families);
-
-    for (uint32_t i = 0; i < count; ++i) {
-      if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-	queue_family = i;
-	break;
-      }
-    }
-  
-    if (queue_family == (uint32_t)-1) {
-      print("queue_family fail\n");
-    }
-  
-    constexpr const char* device_extension = "VK_KHR_swapchain";
-    constexpr const float queue_priority = 1.0f;
-
-    VkDeviceQueueCreateInfo queue_info = { };
-    queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queue_info.queueFamilyIndex = queue_family;
-    queue_info.queueCount = 1;
-    queue_info.pQueuePriorities = &queue_priority;
-
-    VkDeviceCreateInfo create_info2 = { };
-    create_info2.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    create_info2.queueCreateInfoCount = 1;
-    create_info2.pQueueCreateInfos = &queue_info;
-    create_info2.enabledExtensionCount = 1;
-    create_info2.ppEnabledExtensionNames = &device_extension;
-
-    VkDevice vk_fake_device = VK_NULL_HANDLE;
-
-    vkCreateDevice(vk_physical_device, (const VkDeviceCreateInfo*)&create_info2, vk_allocator, &vk_fake_device);
-    if (vk_fake_device == nullptr) {
-      print("Failed to create Vulkan dummy device\n");
-      return;
-    }
-      
-    queue_present_original = (VkResult (*)(VkQueue, const VkPresentInfoKHR*))vkGetDeviceProcAddr(vk_fake_device, "vkQueuePresentKHR");
-    acquire_next_image_original = (VkResult (*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*))vkGetDeviceProcAddr(vk_fake_device, "vkAcquireNextImageKHR");
-    acquire_next_image2_original = (VkResult (*)(VkDevice, const VkAcquireNextImageInfoKHR*,  uint32_t*))vkGetDeviceProcAddr(vk_fake_device, "vkAcquireNextImage2KHR");
-    create_swapchain_original = (VkResult (*)(VkDevice, const VkSwapchainCreateInfoKHR*, const VkAllocationCallbacks*, VkSwapchainKHR*))vkGetDeviceProcAddr(vk_fake_device, "vkCreateSwapchainKHR");
-
-    vkDestroyDevice(vk_fake_device, vk_allocator);
-
-    // Hook the functions
-    rv = funchook_prepare(funchook, (void**)&queue_present_original, (void*)queue_present_hook);
-    if (rv != 0) {
-      print("Failed to prepare vkQueuePresentKHR hook\n");
-      return;
-    }  
-
-    rv = funchook_prepare(funchook, (void**)&acquire_next_image_original, (void*)acquire_next_image_hook);
-    if (rv != 0) {
-      print("Failed to prepare vkAcquireNextImageKHR hook\n");
-      return;
-    }
-
-    rv = funchook_prepare(funchook, (void**)&acquire_next_image2_original, (void*)acquire_next_image2_hook);
-    if (rv != 0) {
-      print("Failed to prepare vkAcquireNextImage2KHR hook\n");
-      return;
-    }  
-
-    rv = funchook_prepare(funchook, (void**)&create_swapchain_original, (void*)create_swapchain_hook);
-    if (rv != 0) {
-      print("Failed to prepare vkCreateSwapchainKHR hook\n");
-      return;
-    }  
-
-    dlclose(lib_vulkan_handle);
+  if (lib_vulkan_handle == nullptr) {
+    print("Can't find libvulkan!\n");
+    return;
   }
+  
+  print("Vulkan loaded at %p\n", lib_vulkan_handle);
+
+  // https://github.com/bruhmoment21/UniversalHookX/blob/main/UniversalHookX/src/hooks/backend/vulkan/hook_vulkan.cpp#L47
+  VkInstanceCreateInfo create_info = {};
+  constexpr const char* instance_extension = "VK_KHR_surface";
+      
+  create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+  create_info.enabledExtensionCount = 1;
+  create_info.ppEnabledExtensionNames = &instance_extension;
+  
+  // Create Vulkan Instance without any debug feature
+  vkCreateInstance(&create_info, vk_allocator, &vk_instance);
+  
+  uint32_t gpu_count;
+  vkEnumeratePhysicalDevices(vk_instance, &gpu_count, NULL);
+  IM_ASSERT(gpu_count > 0);
+
+  VkPhysicalDevice* gpus = new VkPhysicalDevice[sizeof(VkPhysicalDevice) * gpu_count];
+  vkEnumeratePhysicalDevices(vk_instance, &gpu_count, gpus);
+
+  // If a number >1 of GPUs got reported, find discrete GPU if present, or use first one available. This covers
+  // most common cases (multi-gpu/integrated+dedicated graphics). Handling more complicated setups (multiple
+  // dedicated GPUs) is out of scope of this sample.
+  int use_gpu = 0;
+  for (int i = 0; i < (int)gpu_count; ++i) {
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(gpus[i], &properties);
+    if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+      use_gpu = i;
+      break;
+    }
+  }
+	
+  vk_physical_device = gpus[use_gpu];
+
+  delete[] gpus;
+
+  vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device, &count, NULL);
+
+  queue_families = (VkQueueFamilyProperties*)malloc(count*sizeof(VkQueueFamilyProperties));
+
+  vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device, &count, queue_families);
+
+  for (uint32_t i = 0; i < count; ++i) {
+    if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+      queue_family = i;
+      break;
+    }
+  }
+  
+  if (queue_family == (uint32_t)-1) {
+    print("queue_family fail\n");
+  }
+  
+  constexpr const char* device_extension = "VK_KHR_swapchain";
+  constexpr const float queue_priority = 1.0f;
+
+  VkDeviceQueueCreateInfo queue_info = { };
+  queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+  queue_info.queueFamilyIndex = queue_family;
+  queue_info.queueCount = 1;
+  queue_info.pQueuePriorities = &queue_priority;
+
+  VkDeviceCreateInfo create_info2 = { };
+  create_info2.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+  create_info2.queueCreateInfoCount = 1;
+  create_info2.pQueueCreateInfos = &queue_info;
+  create_info2.enabledExtensionCount = 1;
+  create_info2.ppEnabledExtensionNames = &device_extension;
+
+  VkDevice vk_fake_device = VK_NULL_HANDLE;
+
+  vkCreateDevice(vk_physical_device, (const VkDeviceCreateInfo*)&create_info2, vk_allocator, &vk_fake_device);
+  if (vk_fake_device == nullptr) {
+    print("Failed to create Vulkan dummy device\n");
+    return;
+  }
+      
+  queue_present_original = (VkResult (*)(VkQueue, const VkPresentInfoKHR*))vkGetDeviceProcAddr(vk_fake_device, "vkQueuePresentKHR");
+  acquire_next_image_original = (VkResult (*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*))vkGetDeviceProcAddr(vk_fake_device, "vkAcquireNextImageKHR");
+  acquire_next_image2_original = (VkResult (*)(VkDevice, const VkAcquireNextImageInfoKHR*,  uint32_t*))vkGetDeviceProcAddr(vk_fake_device, "vkAcquireNextImage2KHR");
+  create_swapchain_original = (VkResult (*)(VkDevice, const VkSwapchainCreateInfoKHR*, const VkAllocationCallbacks*, VkSwapchainKHR*))vkGetDeviceProcAddr(vk_fake_device, "vkCreateSwapchainKHR");
+
+  vkDestroyDevice(vk_fake_device, vk_allocator);
+
+  // Hook the functions
+  rv = funchook_prepare(funchook, (void**)&queue_present_original, (void*)queue_present_hook);
+  if (rv != 0) {
+    print("Failed to prepare vkQueuePresentKHR hook\n");
+    return;
+  }  
+
+  rv = funchook_prepare(funchook, (void**)&acquire_next_image_original, (void*)acquire_next_image_hook);
+  if (rv != 0) {
+    print("Failed to prepare vkAcquireNextImageKHR hook\n");
+    return;
+  }
+
+  rv = funchook_prepare(funchook, (void**)&acquire_next_image2_original, (void*)acquire_next_image2_hook);
+  if (rv != 0) {
+    print("Failed to prepare vkAcquireNextImage2KHR hook\n");
+    return;
+  }  
+
+  rv = funchook_prepare(funchook, (void**)&create_swapchain_original, (void*)create_swapchain_hook);
+  if (rv != 0) {
+    print("Failed to prepare vkCreateSwapchainKHR hook\n");
+    return;
+  }  
+
+  dlclose(lib_vulkan_handle);
+
+
+
 
   void* lib_sdl_handle = dlopen("libSDL3.so.0", RTLD_LAZY | RTLD_NOLOAD);
 
@@ -284,7 +309,14 @@ void entry() {
     print("Failed to prepare SDL_GetWindowSize hook\n");
     return;
   }
-  
+
+  get_keyboard_focus_original = (SDL_Window* (*)(void))dlsym(lib_sdl_handle, "SDL_GetKeyboardFocus");
+  rv = funchook_prepare(funchook, (void**)&get_keyboard_focus_original, (void*)get_keyboard_focus_hook);
+  if (rv != 0) {
+    print("Failed to prepare SDL_GetKeyboardFocus hook\n");
+    return;
+  }
+
   dlclose(lib_sdl_handle);
 
   rv = funchook_install(funchook, 0);
