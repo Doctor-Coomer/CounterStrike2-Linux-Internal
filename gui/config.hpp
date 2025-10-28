@@ -15,9 +15,10 @@ struct Aimbot {
 
   struct button key = {.button = -SDL_BUTTON_X1};
 
-  float fov = 45;
+  float fov = 5.0f;
+  float smooth = 5.0f;
   bool draw_fov = false;
-  
+
   bool recoil = true;
 
   bool auto_shoot = false;
@@ -34,16 +35,16 @@ struct ESP {
     bool health_text = true;
 
     bool name = true;
-    RGBA_float name_color = {.r = 1, .g = 1, .b = 1, .a = 1};    
-    
+    RGBA_float name_color = {.r = 1, .g = 1, .b = 1, .a = 1};
+
     bool skeleton = true;
-    RGBA_float skeleton_color = {.r = 1, .g = 1, .b = 1, .a = 1};    
-    
+    RGBA_float skeleton_color = {.r = 1, .g = 1, .b = 1, .a = 1};
+
     struct {
       bool target_indicator = true;
-      RGBA_float target_indicator_color = {.r = 1, .g = 0, .b = 1, .a = 1};    
+      RGBA_float target_indicator_color = {.r = 1, .g = 0, .b = 1, .a = 1};
     } flags;
-    
+
   } player;
 };
 
@@ -77,7 +78,7 @@ struct {
 static bool is_button_down(struct button button) {
   if (button.button >= 0) {
     const bool* keys = SDL_GetKeyboardState(NULL);
-  
+
     if (keys[button.button] == 1)
       return true;
 
@@ -89,7 +90,7 @@ static bool is_button_down(struct button button) {
       return true;
 
     return false;
-  }  
+  }
 
   return false;
 }
