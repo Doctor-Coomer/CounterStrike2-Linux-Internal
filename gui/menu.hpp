@@ -42,9 +42,8 @@ static void draw_aim_tab() {
   ImGui::Text("General");
   ImGui::KeybindBox(&config.aimbot.key.waiting, &config.aimbot.key.button);
 
-  ImGui::Text("FOV: ");
-  ImGui::SameLine();
-  ImGui::SliderFloatHeightPad(" ", &config.aimbot.fov, 0.1f, 180.0f, 1, "%.0f\xC2\xB0");
+  ImGui::SliderFloatHeightPad("FOV", &config.aimbot.fov, 0.1f, 180.0f, 1, "%.0f\xC2\xB0");
+  ImGui::SliderFloatHeightPad("Smoothness", &config.aimbot.smooth, 1.0f, 20.0f, 1, "%.1f");
   ImGui::Checkbox("Draw FOV", &config.aimbot.draw_fov);
 
   ImGui::Checkbox("Recoil Compensation", &config.aimbot.recoil);
